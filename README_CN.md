@@ -1,285 +1,371 @@
-# Lumina-Layers
+# Lumina Studio
 
-一个探索**分层光学混色**的实验性 FDM 引擎。  
-从 CMYK 像素艺术起步，逐步演进为通用的多材料照片处理器。
+Physics-Based Multi-Material FDM Color System
 
-**[📖 English Version](README.md)**
-
----
-
-## 🌟 灵感来源
-
-本项目的灵感来自多色 3D 打印领域的先驱工作：
-
-- **HueForge** - 突破性的工具，首次将光学混色引入 FDM 社区，展示了透明耗材层如何通过叠加光传输创造丰富色彩。
-- **AutoForge** - 自动化的色彩匹配工作流程，让多材料彩色打印变得触手可及。
-- **CMYK 印刷理论** - 传统的减色混色模型，通过逐层透光被巧妙地应用于 3D 打印。
-
-Lumina-Layers 在这些基础之上，引入了**闭环校准系统**，以应对现实世界中耗材特性、打印机硬件和环境条件的差异。
+[📖 中文文档 / Chinese Version](README_CN.md)
 
 ---
 
-## 🛑 仅限非商业使用
+## Project Status
 
-本软件及其生成的所有模型均采用 **CC BY-NC-SA 4.0** 许可证。
-
-- ❌ **禁止**出售生成的 STL/3MF 文件。
-- ❌ **禁止**出售使用本工具生成的实体打印件。
-- ❌ **禁止**将本工具打包为付费服务。
-
-如需商业授权，请联系作者。
+**Current Version**: v1.4  
+**License**: CC BY-NC-SA 4.0 (with Commercial Exemption)  
+**Nature**: Non-profit independent implementation, open-source community project
 
 ---
 
-## 📖 项目概述
+## Inspiration & Technical Declaration
 
-**Lumina-Layers** 在数字像素与物理耗材之间架起了一座桥梁。
+### Acknowledgment to Pioneers
 
-传统的多色浮雕工具依赖理论上的"透射距离"（TD）值，但这些值往往因耗材批次差异、喷嘴温度或切片器逻辑而失效。Lumina-Layers 使用**闭环校准系统**。通过扫描实际打印的色彩矩阵，它为你的打印机硬件建立了一个"真实值"查找表（LUT），确保像素艺术和浮雕模型的精确色彩还原。
+This project exists thanks to the public disclosure and sharing of the following technologies:
 
----
+- **HueForge** - The first tool to introduce optical color mixing to the FDM community, proving that transparent filament layer stacking can create rich colors through light transmission.
+- **AutoForge** - Automated color matching workflows that made multi-material color printing accessible.
+- **CMYK Printing Theory** - Classic subtractive color model adapted for layer-by-layer transmission in 3D printing.
 
-## 🔄 闭环工作流程
+### Technical Distinction & Positioning
+
+Traditional tools rely on theoretical calculations (e.g., TD1/TD0 transmission distance values), but these parameters easily fail due to filament batch variations, nozzle temperature fluctuations, and slicer logic differences.
+
+**Lumina Studio takes a "brute force physical sampling" approach**:
+1. Print a 1024-color physical calibration board (full permutation of 4 colors × 5 layers)
+2. Photograph and scan to extract real RGB data
+3. Build a "ground truth lookup table" (LUT)
+4. directly matching via nearest-neighbor algorithm
 
 
-### 📐 模块 1：校准板生成器
-生成用于物理测试耗材混色的精密校准板。
+### Prior Art Statement
 
-- **1024 色矩阵**：4 种基础耗材在 5 层（总厚度 0.4mm）中的全排列组合。
-- **双色彩模式**：支持 **CMYW**（青/品红/黄/白）和 **RYBW**（红/黄/蓝/白）两种模式。
-- **反向打印优化**：观察面直接打印在热床上，获得光滑的表面质感。
-- **实心背板**：自动生成 1.6mm 不透明背板，确保色彩一致性和结构强度。
-- **防重叠几何**：对体素应用 0.02mm 微收缩，防止切片器线宽冲突。
+The core principles of FDM multi-layer color mixing were publicly disclosed by software like HueForge between 2022-2023, and are considered **Prior Art**. Pioneers chose to keep it open to help the community grow, so this technique is generally **not patentable**.
 
-### 🎨 模块 2：颜色提取器
-将打印机的物理现实数字化。
+Lumina Studio is a completely independent non-profit implementation and does not reference any non-public patents.
 
-- **计算机视觉**：使用透视变换和镜头畸变校正自动对齐网格。
-- **模式感知对齐**：根据所选模式（CMYW vs RYBW），角点标记遵循正确的颜色顺序。
-- **数字孪生**：从打印件中提取 RGB 值并生成 `.npy` LUT 文件。
-- **人机协同**：交互式探针工具允许你手动验证和修正特定色块的读取值（例如消除眩光/阴影）。
-
-### 💎 模块 3：图像转换器
-使用校准数据将图像转换为可打印的 3D 模型。
-
-- **KD 树色彩匹配**：将图像像素映射到 LUT 中实际可打印的颜色。
-- **实时 3D 预览**：带有真实匹配颜色的交互式 WebGL 预览 - 旋转、缩放，打印前全面检查。
-- **钥匙扣挂孔生成器**：自动添加功能性挂孔，特性包括：
-  - 智能颜色检测（匹配附近模型颜色）
-  - 可自定义尺寸（宽度、长度、孔径）
-  - 矩形底部 + 半圆顶部 + 空心孔几何结构
-  - 2D 预览显示挂孔位置
-- **结构选项**：双面（钥匙扣）或单面（浮雕）模式。
-- **智能背景移除**：自动透明度检测，可调节容差。
-- **正确的 3MF 命名**：对象按颜色命名（例如"青色"、"品红"），而不是"geometry_0"，方便切片器识别。
+**Special thanks to the HueForge team for supporting open source!**
 
 ---
 
-## ✨ v1.3 版本新特性
+## Open Ecosystem Pledge
 
-| 功能 | 说明 |
-|------|------|
-| 🔗 **钥匙扣挂孔** | 添加功能性挂孔，自动颜色检测 |
-| 🎨 **挂孔形状** | 矩形底部 + 半圆顶部 + 空心孔 |
-| 👁️ **2D 预览** | 点击放置挂孔；实时预览并支持旋转 |
-| 🎯 **智能配色** | 自动匹配挂孔颜色到附近的模型像素 |
+### About .npy Calibration Files
 
-### 之前的更新（v1.2）
-| 功能 | 说明 |
-|------|------|
-| 🔧 **修复 3MF 命名** | 切片器现在显示正确的颜色名称（白色、青色、品红…） |
-| 🎨 **双色彩模式** | 完整支持 CMYW 和 RYBW 色彩系统 |
-| 🎮 **实时 3D 预览** | 带有真实 LUT 匹配颜色的交互式预览 |
-| 🌐 **双语界面** | 整个界面均有中文/英文标签 |
-| 📏 **优化间隙** | 默认间隙改为 0.82mm，适配标准线宽 |
+All calibration presets (`.npy` files) are **completely free and open**, following these principles:
+
+- **Anti-Vendor Lock-in**: Past, present, and future—we will **NEVER** force users to use specific filament brands, nor will we require manufacturers to produce "compatible filaments." This violates the spirit of open source.
+
+- **Community Co-creation**: Everyone (users, organizations, filament manufacturers) is welcome to submit PRs to sync calibration presets. Your printer data can help others.
+
+**Data Openness = Technology Democratization**
 
 ---
 
-## 🗺️ 开发路线图
+## License
 
-### 阶段 1：基础架构 ✅ **已完成**
-> 目标：像素艺术和简单图形。
+### Core License: CC BY-NC-SA 4.0
 
-- ✅ 固定 CMYW/RYBW 混色
-- ✅ 基于整数的"板层"几何
-- ✅ 实心背板生成
-- ✅ 闭环校准系统
-- ✅ 带真实颜色的实时 3D 预览
-- ✅ 钥匙扣挂孔生成器
+- ✅ **Attribution**: You must give appropriate credit
+- ❌ **NonCommercial**: You may not sell the source code or close it
+- 🔄 **ShareAlike**: If you modify it, you must distribute it under the same license
 
-### 阶段 2：漫画模式（单色） 🚧 **进行中**
-> 目标：漫画分镜、墨稿、高对比度插图。
+### Commercial Exemption ("Street Vendor" Special Authorization)
 
-- 逻辑：使用基于厚度的灰度（光刻版逻辑）的黑白分层。
-- 技术：模拟网点（Ben-Day dots）。
+**For individual creators, street vendors, and small private businesses**:
 
-### 阶段 3：全彩照片引擎
-> 目标：照片、动漫插图。
+You **do NOT need to ask for permission**. You automatically have the right to:
+- Use this software to generate models
+- Sell physical prints (keychains, reliefs, etc.)
+- Sell at night markets, fairs, and small online shops
 
-- 逻辑：动态调色板支持（4/6/8 色）。
-- 技术：
-  - 高级抖动算法（Floyd-Steinberg/Atkinson）来模拟渐变。
-  - LAB 色彩空间集成，获得更好的感知匹配。
+**Go set up your stall and make money! This is your right.**
 
-### 阶段 4：扩展色彩模式
-> 目标：专业多材料打印。
-
-- 6 色扩展模式
-- 8 色专业模式
-- 拼豆模式
+*Note: Batch industrial production, SaaS platform operations, and OEM branding still require commercial licensing from the author.*
 
 ---
 
-## 🛠️ 安装
+Lumina Studio v1.4 integrates three major modules into a unified interface:
 
-**克隆仓库**
+### 📐 Module 1: Calibration Generator
+
+Generates precision calibration boards to physically test filament mixing.
+
+- **1024-Color Matrix**: Full permutation of 4 base filaments across 5 layers (0.4mm total)
+- **Dual Color Modes**: Supports both CMYW (Cyan/Magenta/Yellow/White) and RYBW (Red/Yellow/Blue/White)
+- **Face-Down Optimization**: Viewing surface prints directly on the build plate for a smooth finish
+- **Solid Backing**: Automatically generates a 1.6mm opaque backing to ensure color consistency and structural rigidity
+- **Anti-Overlap Geometry**: Applies 0.02mm micro-shrinkage to voxels to prevent slicer line-width conflicts
+
+### 🎨 Module 2: Color Extractor
+
+Digitizes the physical reality of your printer.
+
+- **Computer Vision**: Perspective warp + lens distortion correction for automatic grid alignment
+- **Mode-Aware Alignment**: Corner markers follow the correct color sequence based on your selected mode (CMYW vs RYBW)
+- **Digital Twin**: Extracts RGB values from the print and generates a .npy LUT file
+- **Human-in-the-Loop**: Interactive probe tools allow manual verification/correction of specific color block readings (e.g., removing glare/shadows)
+
+### 💎 Module 3: Image Converter
+
+Converts images into printable 3D models using calibrated data.
+
+- **KD-Tree Color Matching**: Maps image pixels to actual printable colors found in your LUT
+- **Live 3D Preview**: Interactive WebGL preview with true matched colors—rotate, zoom, and inspect before printing
+- **Keychain Loop Generator**: Automatically adds functional hanging loops with:
+  - Smart color detection (matches nearby model colors)
+  - Customizable dimensions (width, length, hole diameter)
+  - Rectangle base + semicircle top + hollow hole geometry
+  - 2D preview shows loop placement
+- **Structure Options**: Double-sided (keychain) or Single-sided (relief) modes
+- **Smart Background Removal**: Automatic transparency detection with adjustable tolerance
+- **Correct 3MF Naming**: Objects are named by color (e.g., "Cyan", "Magenta") instead of "geometry_0" for easy slicer identification
+
+---
+
+## What's New in v1.4 🚀
+
+### Three Modeling Modes
+
+Lumina Studio v1.4 introduces **three distinct geometry generation engines** to cover everything from pixel art to photo-realistic details:
+
+| Mode | Use Case | Technical Features | Precision |
+|------|----------|-------------------|-----------|
+| 🎨 **Vector Mode** | Logos, illustrations, cartoons | Smooth curves, OpenCV contour extraction | 10 px/mm (0.1mm/pixel) |
+| 🖼️ **Woodblock Mode** ⭐ | Photos, portraits, complex textures | SLIC superpixels + detail preservation | 10 px/mm  |
+| 🧱 **Voxel Mode** | Pixel art, 8-bit style | Blocky geometry, nostalgic aesthetic | 2.4 px/mm (nozzle width) |
+
+### Color Quantization Engine 
+
+**"Cluster First, Match Second"**:
+
+Traditional methods match 1 million pixels to LUT individually. v1.4 instead:
+1. **K-Means Clustering**: Quantize image to K dominant colors (8-256, default 64)
+2. **Match Only K Colors**: 1000× speed improvement
+3. **Spatial Denoising**: Bilateral + median filtering eliminates fragmented regions
+
+**User-Adjustable Parameters**:
+- **Vector Color Detail** slider: 8 colors (minimalist) to 256 colors (photographic)
+
+### Other Improvements
+
+| Feature | Description |
+|---------|-------------|
+| 📏 Resolution Decoupling | Vector/Woodblock: 10 px/mm, Voxel: 2.4 px/mm |
+| 🎮 Smart 3D Preview Downsampling | Large models auto-simplify preview (3MF retains full quality) |
+| 🚫 Browser Crash Protection | Detects model complexity, disables preview for 2M+ pixels |
+
+**Previous Updates (v1.2-1.3)**:
+
+| Feature | Description |
+|---------|-------------|
+| 🔧 Fixed 3MF Naming | Slicer now shows correct color names (White, Cyan, Magenta...) |
+| 🎨 Dual Color Modes | Full support for both CMYW and RYBW color systems |
+| 🎮 Live 3D Preview | Interactive preview with actual LUT-matched colors |
+| 🌐 Bilingual UI | Chinese/English labels throughout the interface |
+| 📏 Optimized Gap | Default gap changed to 0.82mm for standard line widths |
+| 📦 Unified App | All three tools merged into single application |
+
+---
+
+## Development Roadmap
+
+### Phase 1: The Foundation ✅ COMPLETE
+
+**Target**: Pixel Art & Photographic Graphics
+
+- ✅ Fixed CMYW/RYBW mixing
+- ✅ Three modeling modes (Vector/Woodblock/Voxel)
+- ✅ Woodblock mode SLIC superpixel engine
+- ✅ Vector mode ultra-high precision (0.2mm nozzle compatible)
+- ✅ K-Means color quantization architecture
+- ✅ Solid Backing generation
+- ✅ Closed-loop calibration system
+- ✅ Live 3D preview with true colors
+- ✅ Keychain loop generator
+
+### Phase 2: Manga Mode (Monochrome) 🚧 IN PROGRESS
+
+**Target**: Manga panels, Ink drawings, High-contrast illustrations
+
+- Logic: Black & White layering using thickness-based grayscale (Lithophane logic)
+- Tech: Simulating screen tones (Ben-Day dots)
+
+### Phase 3: Dynamic Palette Engine
+
+**Target**: Adaptive color systems
+
+- Logic: Dynamic Palette Support (4/6/8 colors auto-selection)
+- Tech:
+  - Intelligent color clustering algorithms
+  - Adaptive dithering algorithms
+  - Perceptual color difference optimization
+
+### Phase 4: Extended Color Modes
+
+**Target**: Professional multi-material printing
+
+- 6-color extended mode
+- 8-color professional mode
+- Perler bead mode
+
+---
+
+## Installation
+
+### Clone the repository
+
 ```bash
 git clone https://github.com/MOVIBALE/Lumina-Layers.git
 cd Lumina-Layers
 ```
 
-**安装依赖**
+### Install dependencies
+
+**Core dependencies** (required):
 ```bash
 pip install -r requirements.txt
 ```
 
+**Woodblock mode dependency** (optional, for photo/portrait conversion):
+```bash
+pip install scikit-image
+```
+
+If `scikit-image` is not installed, Woodblock mode will automatically fall back to Vector mode.
+
 ---
 
-## 🚀 使用指南
+## Usage Guide
 
-### 快速开始
+### Quick Start
+
 ```bash
 python main.py
 ```
-这将启动包含所有三个模块的 Web 界面。
+
+This launches the web interface with all three modules in tabs.
 
 ---
 
-### 步骤 1：生成校准板
+### Step 1: Generate Calibration Board
 
-1. 打开 **📐 校准板** 标签页
-2. 选择你的色彩模式：
-   - **RYBW**（红/黄/蓝/白）- 传统三原色
-   - **CMYW**（青/品红/黄/白）- 印刷色彩，更宽的色域
-3. 调整色块尺寸（默认：5mm）和间隙（默认：0.82mm）
-4. 点击 **生成** 并下载 `.3mf` 文件
+1. Open the **📐 Calibration** tab
+2. Select your color mode:
+   - **RYBW** (Red/Yellow/Blue/White) - Traditional primaries
+   - **CMYW** (Cyan/Magenta/Yellow/White) - Print colors, wider gamut
+3. Adjust block size (default: 5mm) and gap (default: 0.82mm)
+4. Click **Generate** and download the `.3mf` file
 
-**打印设置：**
-- 层高：0.08mm（色彩层），背板可使用 0.2mm
-- 耗材槽位必须与所选模式匹配
+**Print Settings**:
 
-| 模式 | 槽位 1 | 槽位 2 | 槽位 3 | 槽位 4 |
+- Layer height: 0.08mm (color layers), backing can use 0.2mm
+- Filament slots must match your selected mode
+
+| Mode | Slot 1 | Slot 2 | Slot 3 | Slot 4 |
 |------|--------|--------|--------|--------|
-| RYBW | 白色 | 红色 | 黄色 | 蓝色 |
-| CMYW | 白色 | 青色 | 品红 | 黄色 |
+| RYBW | White | Red | Yellow | Blue |
+| CMYW | White | Cyan | Magenta | Yellow |
 
 ---
 
-### 步骤 2：提取颜色
+### Step 2: Extract Colors
 
-1. 打印校准板并拍照（正面朝上，均匀照明）
-2. 打开 **🎨 颜色提取器** 标签页
-3. **选择与校准板相同的色彩模式**
-4. 上传你的照片
-5. 按顺序点击四个角点色块：
+1. Print the calibration board and photograph it (face-up, even lighting)
+2. Open the **🎨 Color Extractor** tab
+3. Select the same color mode as your calibration board
+4. Upload your photo
+5. Click the four corner blocks in order:
 
-| 模式 | 角点 1（左上） | 角点 2（右上） | 角点 3（右下） | 角点 4（左下） |
+| Mode | Corner 1 (TL) | Corner 2 (TR) | Corner 3 (BR) | Corner 4 (BL) |
 |------|---------------|---------------|---------------|---------------|
-| RYBW | ⬜ 白色 | 🟥 红色 | 🟦 蓝色 | 🟨 黄色 |
-| CMYW | ⬜ 白色 | 🔵 青色 | 🟣 品红 | 🟨 黄色 |
+| RYBW | ⬜ White | 🟥 Red | 🟦 Blue | 🟨 Yellow |
+| CMYW | ⬜ White | 🔵 Cyan | 🟣 Magenta | 🟨 Yellow |
 
-6. 根据需要调整校正滑块（白平衡、暗角、畸变）
-7. 点击 **提取** 并下载 `my_printer_lut.npy`
-
----
-
-### 步骤 3：转换图像
-
-1. 打开 **💎 图像转换器** 标签页
-2. 上传你的 `.npy` LUT 文件
-3. 上传你的图像（像素艺术效果最佳）
-4. **选择与 LUT 相同的色彩模式**
-5. 点击 **👁️ 生成预览** 查看结果
-6. **（可选）添加钥匙扣挂孔：**
-   - 在 2D 预览上点击你想要附加挂孔的位置
-   - 勾选"启用挂孔"复选框
-   - 调整挂孔宽度、长度和孔径
-   - 挂孔颜色会自动从附近像素检测
-7. 选择结构类型：
-   - **双面** - 用于钥匙扣（两面都有图像）
-   - **单面** - 用于浮雕/光刻版风格
-8. 点击 **🚀 生成 3MF**
-9. 在交互式 3D 查看器中预览
-10. 下载 `.3mf` 文件
+6. Adjust correction sliders if needed (white balance, vignette, distortion)
+7. Click **Extract** and download `my_printer_lut.npy`
 
 ---
 
-## 🧱 技术栈
+### Step 3: Convert Image
 
-| 组件 | 技术 |
-|------|------|
-| 核心逻辑 | Python（NumPy 用于体素操作） |
-| 几何引擎 | Trimesh（网格生成与导出） |
-| UI 框架 | Gradio 4.0+ |
-| 视觉处理 | OpenCV（透视变换与颜色提取） |
-| 色彩匹配 | SciPy KDTree |
-| 3D 预览 | Gradio Model3D（GLB 格式） |
-
----
-
-## 🔬 工作原理
-
-### 光学色彩理论
-Lumina-Layers 使用 **Beer-Lambert 定律**计算光通过分层介质的透射：
-
-\[I = I_0 \cdot e^{-\alpha \cdot d}\]
-
-其中：
-- \(I\) = 透射光强度
-- \(I_0\) = 入射光强度
-- \(\alpha\) = 吸收系数（材料特定）
-- \(d\) = 层厚度
-
-通过堆叠 5 层不同颜色的耗材（每层 0.08mm），我们创建了总透射距离 0.4mm，通过减色吸收实现复杂的色彩混合。
-
-### 为什么校准很重要
-理论 TD 值假设：
-- 耗材染料浓度完全一致
-- 所有材料的喷嘴温度相同
-- 均匀的层粘附
-
-实际上，这些因素在以下情况下会有显著差异：
-- 不同耗材品牌/批次
-- 打印机型号和喷嘴设计
-- 环境湿度和温度
-
-**基于 LUT 的方法解决了这个问题**，通过测量实际打印的颜色并在 RGB 空间中使用最近邻搜索进行匹配。
+1. Open the **💎 Image Converter** tab
+2. Upload your `.npy` LUT file
+3. Upload your image
+4. Select the same color mode as your LUT
+5. **Choose Modeling Mode**:
+   - **Vector (Smooth)** - Recommended for logos, illustrations, cartoons
+   - **Woodblock (Detail-Optimized)** - Recommended for photos, portraits (requires scikit-image)
+   - **Voxel (Blocky)** - Recommended for pixel art
+6. Adjust **Vector Color Detail** slider (8-256 colors, default 64):
+   - 8-32 colors: Minimalist style, fast generation
+   - 64-128 colors: Balanced detail & speed (recommended)
+   - 128-256 colors: Photographic detail, slower generation
+7. Click **👁️ Generate Preview** to see the result
+8. (Optional) Add Keychain Loop:
+   - Click on the 2D preview where you want the loop attached
+   - Enable "启用挂孔" checkbox
+   - Adjust loop width, length, and hole diameter
+   - The loop color is automatically detected from nearby pixels
+9. Choose structure type:
+   - **Double-sided** - For keychains (image on both sides)
+   - **Single-sided** - For relief/lithophane style
+10. Click **🚀 Generate 3MF**
+11. Preview in the interactive 3D viewer
+12. Download the `.3mf` file
 
 ---
 
-## 📄 许可证
+## Technical Stack
 
-本项目采用 **知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议（CC BY-NC-SA 4.0）**。
-
-- ✅ **署名**：你必须给出适当的署名。
-- ❌ **非商业性使用**：你不得将本作品用于商业目的。
-- 🔄 **相同方式共享**：如果你修改它，你必须在相同许可证下分发。
-
----
-
-## 🙏 致谢
-
-特别感谢：
-- **HueForge** 在 FDM 打印中开创光学混色先河
-- **AutoForge** 让多色工作流程普及化
-- 3D 打印社区的持续创新
+| Component | Technology |
+|-----------|------------|
+| Core Logic | Python (NumPy for voxel manipulation) |
+| Geometry Engine | Trimesh (Mesh generation & Export) |
+| UI Framework | Gradio 4.0+ |
+| Vision Stack | OpenCV (Perspective & Color Extraction) |
+| Color Matching | SciPy KDTree |
+| 3D Preview | Gradio Model3D (GLB format) |
 
 ---
 
-<div align="center">
+## How It Works
 
-用 ❤️ 制作 by [MIN]
+### Why Calibration Matters
 
-**⭐ 如果觉得有用请给个星标！**
+Theoretical TD values assume:
+- Perfectly consistent filament dye concentration
+- Identical nozzle temperatures across all materials
+- Uniform layer adhesion
 
-</div>
+In reality, these vary significantly between:
+- Different filament brands/batches
+- Printer models and nozzle designs
+- Environmental humidity and temperature
+
+The LUT-based approach solves this by measuring actual printed colors and matching them via nearest-neighbor search in RGB space.
+
+---
+
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** (CC BY-NC-SA 4.0).
+
+- ✅ **Attribution**: You must give appropriate credit
+- ❌ **NonCommercial**: You may not use this for commercial purposes (at the source code level)
+- 🔄 **ShareAlike**: If you modify it, you must distribute it under the same license
+
+**Commercial Exemption**: Individual creators, street vendors, and small private businesses may freely use this software to generate models and sell physical prints.
+
+---
+
+## Acknowledgments
+
+Special thanks to:
+
+- **HueForge** - For pioneering optical color mixing in FDM printing
+- **AutoForge** - For democratizing multi-color workflows
+- **The 3D printing community** - For continuous innovation
+
+---
+
+Made with ❤️ by [MIN]
+
+⭐ Star this repo if you find it useful!
