@@ -271,6 +271,19 @@ div[class*="hidden-crop-component"] {
     visibility: hidden !important;
 }
 
+/* Crop modal host: keep in DOM without occupying layout, allow overlay to show */
+.crop-modal-container {
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 #crop-data-json,
 #crop-data-json *,
 div#crop-data-json,

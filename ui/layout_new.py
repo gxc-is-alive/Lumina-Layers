@@ -596,17 +596,17 @@ def _get_all_component_updates(lang: str, components: dict) -> list:
                 updates.append(gr.update(
                     label=I18n.get(choice_key, lang),
                     choices=[
-                        I18n.get('conv_color_mode_cmyw', lang),
-                        I18n.get('conv_color_mode_rybw', lang),
-                        "6-Color (Smart 1296)"
+                        (I18n.get('conv_color_mode_cmyw', lang), I18n.get('conv_color_mode_cmyw', 'en')),
+                        (I18n.get('conv_color_mode_rybw', lang), I18n.get('conv_color_mode_rybw', 'en')),
+                        ("6-Color (Smart 1296)", "6-Color (Smart 1296)")
                     ]
                 ))
             elif choice_key == 'conv_structure':
                 updates.append(gr.update(
                     label=I18n.get(choice_key, lang),
                     choices=[
-                        I18n.get('conv_structure_double', lang),
-                        I18n.get('conv_structure_single', lang)
+                        (I18n.get('conv_structure_double', lang), I18n.get('conv_structure_double', 'en')),
+                        (I18n.get('conv_structure_single', lang), I18n.get('conv_structure_single', 'en'))
                     ]
                 ))
             elif choice_key == 'conv_modeling_mode':
@@ -614,9 +614,9 @@ def _get_all_component_updates(lang: str, components: dict) -> list:
                     label=I18n.get(choice_key, lang),
                     info=I18n.get('conv_modeling_mode_info', lang),
                     choices=[
-                        I18n.get('conv_modeling_mode_hifi', lang),
-                        I18n.get('conv_modeling_mode_pixel', lang),
-                        I18n.get('conv_modeling_mode_vector', lang)
+                        (I18n.get('conv_modeling_mode_hifi', lang), I18n.get('conv_modeling_mode_hifi', 'en')),
+                        (I18n.get('conv_modeling_mode_pixel', lang), I18n.get('conv_modeling_mode_pixel', 'en')),
+                        (I18n.get('conv_modeling_mode_vector', lang), I18n.get('conv_modeling_mode_vector', 'en'))
                     ]
                 ))
         elif key.startswith('slider_'):
@@ -654,6 +654,9 @@ def _get_all_component_updates(lang: str, components: dict) -> list:
         elif key.startswith('num_'):
             num_key = key[4:]
             updates.append(gr.update(label=I18n.get(num_key, lang)))
+        elif key == 'html_crop_modal':
+            from ui.crop_extension import get_crop_modal_html
+            updates.append(gr.update(value=get_crop_modal_html(lang)))
         elif key.startswith('html_'):
             html_key = key[5:]
             updates.append(gr.update(value=I18n.get(html_key, lang)))
@@ -811,13 +814,18 @@ def create_converter_tab_content(lang: str) -> dict:
             confirm_crop_btn = gr.Button("confirm_crop", elem_id="confirm-crop-hidden-btn", elem_classes=["hidden-crop-component"])
             
             # Cropper.js Modal HTML (JS is loaded via head parameter in main.py)
-            from ui.crop_extension import CROP_MODAL_HTML
-            cropper_modal_html = gr.HTML(CROP_MODAL_HTML)
+            from ui.crop_extension import get_crop_modal_html
+            cropper_modal_html = gr.HTML(
+                get_crop_modal_html(lang),
+                elem_classes=["crop-modal-container"]
+            )
+            components['html_crop_modal'] = cropper_modal_html
             
             # Hidden HTML element to store dimensions for JavaScript
             preprocess_dimensions_html = gr.HTML(
                 value='<div id="preprocess-dimensions-data" data-width="0" data-height="0" style="display:none;"></div>',
-                visible=True
+                visible=True,
+                elem_classes=["hidden-crop-component"]
             )
             # ========== END Image Crop Extension ==========
             
@@ -857,31 +865,31 @@ def create_converter_tab_content(lang: str) -> dict:
             with gr.Row(elem_classes=["compact-row"]):
                 components['radio_conv_color_mode'] = gr.Radio(
                     choices=[
-                        I18n.get('conv_color_mode_cmyw', lang),
-                        I18n.get('conv_color_mode_rybw', lang),
-                        "6-Color (Smart 1296)"
+                        (I18n.get('conv_color_mode_cmyw', lang), I18n.get('conv_color_mode_cmyw', 'en')),
+                        (I18n.get('conv_color_mode_rybw', lang), I18n.get('conv_color_mode_rybw', 'en')),
+                        ("6-Color (Smart 1296)", "6-Color (Smart 1296)")
                     ],
-                    value=I18n.get('conv_color_mode_rybw', lang),
+                    value=I18n.get('conv_color_mode_rybw', 'en'),
                     label=I18n.get('conv_color_mode', lang)
                 )
                 
                 components['radio_conv_structure'] = gr.Radio(
                     choices=[
-                        I18n.get('conv_structure_double', lang),
-                        I18n.get('conv_structure_single', lang)
+                        (I18n.get('conv_structure_double', lang), I18n.get('conv_structure_double', 'en')),
+                        (I18n.get('conv_structure_single', lang), I18n.get('conv_structure_single', 'en'))
                     ],
-                    value=I18n.get('conv_structure_double', lang),
+                    value=I18n.get('conv_structure_double', 'en'),
                     label=I18n.get('conv_structure', lang)
                 )
 
             with gr.Row(elem_classes=["compact-row"]):
                 components['radio_conv_modeling_mode'] = gr.Radio(
                     choices=[
-                        I18n.get('conv_modeling_mode_hifi', lang),
-                        I18n.get('conv_modeling_mode_pixel', lang),
-                        I18n.get('conv_modeling_mode_vector', lang)
+                        (I18n.get('conv_modeling_mode_hifi', lang), I18n.get('conv_modeling_mode_hifi', 'en')),
+                        (I18n.get('conv_modeling_mode_pixel', lang), I18n.get('conv_modeling_mode_pixel', 'en')),
+                        (I18n.get('conv_modeling_mode_vector', lang), I18n.get('conv_modeling_mode_vector', 'en'))
                     ],
-                    value=I18n.get('conv_modeling_mode_hifi', lang),
+                    value=I18n.get('conv_modeling_mode_hifi', 'en'),
                     label=I18n.get('conv_modeling_mode', lang),
                     info=I18n.get('conv_modeling_mode_info', lang),
                     elem_classes=["vertical-radio"],
@@ -1243,11 +1251,11 @@ def create_calibration_tab_content(lang: str) -> dict:
                 
             components['radio_cal_color_mode'] = gr.Radio(
                 choices=[
-                    I18n.get('conv_color_mode_cmyw', lang),
-                    I18n.get('conv_color_mode_rybw', lang),
-                    "6-Color (Smart 1296)"  # New 6-color option
+                    (I18n.get('conv_color_mode_cmyw', lang), I18n.get('conv_color_mode_cmyw', 'en')),
+                    (I18n.get('conv_color_mode_rybw', lang), I18n.get('conv_color_mode_rybw', 'en')),
+                    ("6-Color (Smart 1296)", "6-Color (Smart 1296)")
                 ],
-                value=I18n.get('conv_color_mode_rybw', lang),
+                value=I18n.get('conv_color_mode_rybw', 'en'),
                 label=I18n.get('cal_color_mode', lang)
             )
                 
@@ -1324,7 +1332,7 @@ def create_extractor_tab_content(lang: str) -> dict:
     ext_state_img = gr.State(None)
     ext_state_pts = gr.State([])
     ext_curr_coord = gr.State(None)
-    default_mode = I18n.get('conv_color_mode_rybw', lang)
+    default_mode = I18n.get('conv_color_mode_rybw', 'en')
     ref_img = get_extractor_reference_image(default_mode)
 
     with gr.Row():
@@ -1335,11 +1343,11 @@ def create_extractor_tab_content(lang: str) -> dict:
                 
             components['radio_ext_color_mode'] = gr.Radio(
                 choices=[
-                    I18n.get('conv_color_mode_cmyw', lang),
-                    I18n.get('conv_color_mode_rybw', lang),
-                    "6-Color (Smart 1296)"  # New 6-color option
+                    (I18n.get('conv_color_mode_cmyw', lang), I18n.get('conv_color_mode_cmyw', 'en')),
+                    (I18n.get('conv_color_mode_rybw', lang), I18n.get('conv_color_mode_rybw', 'en')),
+                    ("6-Color (Smart 1296)", "6-Color (Smart 1296)")
                 ],
-                value=I18n.get('conv_color_mode_rybw', lang),
+                value=I18n.get('conv_color_mode_rybw', 'en'),
                 label=I18n.get('ext_color_mode', lang)
             )
                 

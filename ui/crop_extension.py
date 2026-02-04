@@ -7,56 +7,80 @@ It uses a decorator pattern to wrap the original create_app function.
 """
 
 import gradio as gr
+from core.i18n import I18n
 from core.image_preprocessor import ImagePreprocessor
 
 
-# Cropper.js Modal HTML (CSS only, JS is loaded via head parameter in main.py)
-CROP_MODAL_HTML = """
+def get_crop_modal_html(lang: str) -> str:
+    """Return the crop modal HTML for the given language."""
+    title = I18n.get('crop_title', lang)
+    original_size = I18n.get('crop_original_size', lang)
+    selection_size = I18n.get('crop_selection_size', lang)
+    label_x = I18n.get('crop_x', lang)
+    label_y = I18n.get('crop_y', lang)
+    label_w = I18n.get('crop_width', lang)
+    label_h = I18n.get('crop_height', lang)
+    btn_use_original = I18n.get('crop_use_original', lang)
+    btn_confirm = I18n.get('crop_confirm', lang)
+
+    # Cropper.js Modal HTML (CSS only, JS is loaded via head parameter in main.py)
+    template = """
 <style>
-#crop-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
-#crop-modal { background: white; border-radius: 12px; padding: 20px; max-width: 90vw; max-height: 90vh; overflow: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-.crop-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-.crop-modal-header h3 { margin: 0; color: #333; }
-.crop-modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
-.crop-modal-close:hover { color: #333; }
-.crop-image-container { max-width: 800px; max-height: 500px; margin: 0 auto; }
-.crop-image-container img { max-width: 100%; display: block; }
-.crop-info-bar { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 6px; font-size: 14px; }
-.crop-inputs { display: flex; gap: 15px; margin: 15px 0; flex-wrap: wrap; }
-.crop-input-group { display: flex; flex-direction: column; gap: 5px; }
-.crop-input-group label { font-size: 12px; color: #666; }
-.crop-input-group input { width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-.crop-modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
-.crop-btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-.crop-btn-secondary { background: #f0f0f0; color: #333; }
-.crop-btn-secondary:hover { background: #e0e0e0; }
-.crop-btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.crop-btn-primary:hover { opacity: 0.9; }
+#crop-modal-overlay {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }}
+#crop-modal {{ background: white; border-radius: 12px; padding: 20px; max-width: 90vw; max-height: 90vh; overflow: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }}
+.crop-modal-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }}
+.crop-modal-header h3 {{ margin: 0; color: #333; }}
+.crop-modal-close {{ background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }}
+.crop-modal-close:hover {{ color: #333; }}
+.crop-image-container {{ max-width: 800px; max-height: 500px; margin: 0 auto; }}
+.crop-image-container img {{ max-width: 100%; display: block; }}
+.crop-info-bar {{ display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 6px; font-size: 14px; }}
+.crop-inputs {{ display: flex; gap: 15px; margin: 15px 0; flex-wrap: wrap; }}
+.crop-input-group {{ display: flex; flex-direction: column; gap: 5px; }}
+.crop-input-group label {{ font-size: 12px; color: #666; }}
+.crop-input-group input {{ width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }}
+.crop-modal-buttons {{ display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }}
+.crop-btn {{ padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }}
+.crop-btn-secondary {{ background: #f0f0f0; color: #333; }}
+.crop-btn-secondary:hover {{ background: #e0e0e0; }}
+.crop-btn-primary {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
+.crop-btn-primary:hover {{ opacity: 0.9; }}
 </style>
 <div id="crop-modal-overlay">
     <div id="crop-modal">
         <div class="crop-modal-header">
-            <h3>✂️ 图片裁剪 Image Crop</h3>
+            <h3>{title}</h3>
             <button class="crop-modal-close" onclick="window.closeCropModal()">&times;</button>
         </div>
         <div class="crop-image-container"><img id="crop-image" src="" alt="Crop Preview"></div>
         <div class="crop-info-bar">
-            <span id="crop-original-size">原图尺寸: -- × -- px</span>
-            <span id="crop-selection-size">选区尺寸: -- × -- px</span>
+            <span id="crop-original-size" data-prefix="{original_size}">{original_size}: -- × -- px</span>
+            <span id="crop-selection-size" data-prefix="{selection_size}">{selection_size}: -- × -- px</span>
         </div>
         <div class="crop-inputs">
-            <div class="crop-input-group"><label>X 偏移</label><input type="number" id="crop-x" value="0" min="0" oninput="window.updateCropperFromInputs()"></div>
-            <div class="crop-input-group"><label>Y 偏移</label><input type="number" id="crop-y" value="0" min="0" oninput="window.updateCropperFromInputs()"></div>
-            <div class="crop-input-group"><label>宽度</label><input type="number" id="crop-width" value="100" min="1" oninput="window.updateCropperFromInputs()"></div>
-            <div class="crop-input-group"><label>高度</label><input type="number" id="crop-height" value="100" min="1" oninput="window.updateCropperFromInputs()"></div>
+            <div class="crop-input-group"><label>{label_x}</label><input type="number" id="crop-x" value="0" min="0" oninput="window.updateCropperFromInputs()"></div>
+            <div class="crop-input-group"><label>{label_y}</label><input type="number" id="crop-y" value="0" min="0" oninput="window.updateCropperFromInputs()"></div>
+            <div class="crop-input-group"><label>{label_w}</label><input type="number" id="crop-width" value="100" min="1" oninput="window.updateCropperFromInputs()"></div>
+            <div class="crop-input-group"><label>{label_h}</label><input type="number" id="crop-height" value="100" min="1" oninput="window.updateCropperFromInputs()"></div>
         </div>
         <div class="crop-modal-buttons">
-            <button class="crop-btn crop-btn-secondary" onclick="window.useOriginalImage()">📷 使用原图</button>
-            <button class="crop-btn crop-btn-primary" onclick="window.confirmCrop()">✂️ 确认裁剪</button>
+            <button class="crop-btn crop-btn-secondary" onclick="window.useOriginalImage()">{btn_use_original}</button>
+            <button class="crop-btn crop-btn-primary" onclick="window.confirmCrop()">{btn_confirm}</button>
         </div>
     </div>
 </div>
 """
+    return template.format(
+        title=title,
+        original_size=original_size,
+        selection_size=selection_size,
+        label_x=label_x,
+        label_y=label_y,
+        label_w=label_w,
+        label_h=label_h,
+        btn_use_original=btn_use_original,
+        btn_confirm=btn_confirm,
+    )
 
 # JavaScript for Cropper.js (to be injected via head parameter)
 CROP_MODAL_JS = """
@@ -133,7 +157,10 @@ window.openCropModal = function(imageSrc, width, height) {
     window.originalImageData = { src: imageSrc, width: width, height: height };
     
     var origSizeEl = document.getElementById('crop-original-size');
-    if (origSizeEl) origSizeEl.textContent = '原图尺寸: ' + width + ' × ' + height + ' px';
+    if (origSizeEl) {
+        var prefix = origSizeEl.dataset.prefix || 'Size';
+        origSizeEl.textContent = prefix + ': ' + width + ' × ' + height + ' px';
+    }
     
     var img = document.getElementById('crop-image');
     if (!img) { console.error('crop-image element not found'); return; }
@@ -157,7 +184,10 @@ window.openCropModal = function(imageSrc, width, height) {
                 if (cropY) cropY.value = Math.round(data.y);
                 if (cropW) cropW.value = Math.round(data.width);
                 if (cropH) cropH.value = Math.round(data.height);
-                if (selSize) selSize.textContent = '选区尺寸: ' + Math.round(data.width) + ' × ' + Math.round(data.height) + ' px';
+                if (selSize) {
+                    var prefix = selSize.dataset.prefix || 'Selection';
+                    selSize.textContent = prefix + ': ' + Math.round(data.width) + ' × ' + Math.round(data.height) + ' px';
+                }
             }
         });
     };
