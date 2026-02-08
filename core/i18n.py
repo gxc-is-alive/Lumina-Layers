@@ -18,8 +18,8 @@ class I18n:
             'en': '✨ Lumina Studio'
         },
         'app_subtitle': {
-            'zh': '多材料3D打印色彩系统 | v1.5.5',
-            'en': 'Multi-Material 3D Print Color System | v1.5.5'
+            'zh': '多材料3D打印色彩系统 | v1.5.6',
+            'en': 'Multi-Material 3D Print Color System | v1.5.6'
         },
         'lang_btn_zh': {
             'zh': '🌐 中文',
@@ -706,7 +706,26 @@ class I18n:
 
 ---
 
-### 📝 v1.5.5 更新日志
+### 📝 v1.5.6 更新日志
+
+#### 🔧 8色模式叠色效果修复
+- **核心修复**：修复8色模式图像转换时堆叠顺序错误导致的叠色效果不正确
+- **数据一致性**：确保8色模式ref_stacks格式与4色、6色保持一致 [顶...底]
+- **观赏面修复**：修复观赏面(Z=0)和背面颠倒的问题
+
+#### 🎨 完整8色图像转换支持
+- **UI增强**：图像转换TAB新增8色模式支持
+- **自动检测**：8色LUT自动检测(2600-2800色范围)
+- **完整工作流**：校准板生成 → 颜色提取 → 图像转换
+
+#### 🐳 Docker支持
+- **容器化部署**：添加Dockerfile支持
+- **简化安装**：无需手动配置系统依赖
+- **跨平台**：统一的部署体验
+
+---
+
+### 📝 v1.5.5 更新日志 (历史)
 
 #### 🎨 8色校准版算法优化
 - **算法升级**：8色校准版采用与6色一致的智能筛选算法
@@ -714,17 +733,6 @@ class I18n:
 - **质量提升**：移除强制黑色约束，改用RGB距离>8的贪心算法
 - **数据修复**：修正材料ID映射，确保与config.py完全一致
 - **统计修正**：修复黑色统计代码，使用正确的材料ID
-
-#### 📊 数据质量
-- 表面黑色使用率：0.0% (仅1个方块)
-- 平均ΔE：3.10 (远超人眼JND 2.3)
-- 总颜色数：2738个 (37×37×2双页)
-- 筛选率：8.36% (从32,768个组合中精选)
-
-#### 🔬 色彩感知分析
-- 添加RGB距离与ΔE对应关系分析
-- 验证人眼可分辨性：55.2%的颜色对ΔE在2.5-5.0
-- 冗余极低：仅0.4%的颜色对ΔE < 1.0
 
 ---
 
@@ -809,10 +817,10 @@ class I18n:
 
 <div style="text-align:center; color:#888; margin-top:20px;">
     Made with ❤️ by [MIN]<br>
-    v1.5.5 | 2025
+    v1.5.6 | 2025
 </div>
 """,
-            'en': """## 🌟 Lumina Studio v1.5.5
+            'en': """## 🌟 Lumina Studio v1.5.6
 
 **Multi-Material 3D Print Color System**
 
@@ -846,7 +854,26 @@ Accurate color reproduction for FDM printing
 
 ---
 
-### 📝 v1.5.5 Changelog
+### 📝 v1.5.6 Changelog
+
+#### 🔧 8-Color Mode Stacking Fix
+- **Core Fix**: Fixed incorrect stacking order in 8-color image conversion causing wrong color layering
+- **Data Consistency**: Ensured 8-color ref_stacks format matches 4-color and 6-color [Top...Bottom]
+- **Viewing Surface Fix**: Fixed reversed viewing surface (Z=0) and back surface
+
+#### 🎨 Complete 8-Color Image Conversion Support
+- **UI Enhancement**: Added 8-color mode to Image Converter tab
+- **Auto Detection**: 8-color LUT auto-detection (2600-2800 color range)
+- **Complete Workflow**: Calibration → Color Extraction → Image Conversion
+
+#### 🐳 Docker Support
+- **Containerization**: Added Dockerfile support
+- **Simplified Installation**: No manual system dependency configuration needed
+- **Cross-Platform**: Unified deployment experience
+
+---
+
+### 📝 v1.5.5 Changelog (History)
 
 #### 🎨 8-Color Calibration Algorithm Optimization
 - **Algorithm Upgrade**: 8-color calibration now uses the same intelligent selection algorithm as 6-color
@@ -854,17 +881,6 @@ Accurate color reproduction for FDM printing
 - **Quality Improvement**: Removed forced black constraints, using RGB distance > 8 greedy algorithm
 - **Data Fix**: Corrected material ID mapping to match config.py
 - **Statistics Fix**: Fixed black color statistics to use correct material ID
-
-#### 📊 Data Quality
-- Surface black usage: 0.0% (only 1 block)
-- Average ΔE: 3.10 (far exceeds human JND 2.3)
-- Total colors: 2738 (37×37×2 dual-page)
-- Selection rate: 8.36% (selected from 32,768 combinations)
-
-#### 🔬 Color Perception Analysis
-- Added RGB distance vs ΔE correlation analysis
-- Verified human distinguishability: 55.2% of color pairs have ΔE 2.5-5.0
-- Minimal redundancy: only 0.4% of color pairs have ΔE < 1.0
 
 ---
 
@@ -949,7 +965,7 @@ Special thanks to:
 
 <div style="text-align:center; color:#888; margin-top:20px;">
     Made with ❤️ by [MIN]<br>
-    v1.5.5 | 2025
+    v1.5.6 | 2025
 </div>
 """
         },
