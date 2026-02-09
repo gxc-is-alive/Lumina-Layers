@@ -137,6 +137,25 @@ Converts images into printable 3D models using calibrated data.
 
 ---
 
+## What's New in v1.5.6 🚀
+
+### LUT Merging with Stacking Preservation
+
+- 🎨 **Merged LUT Support** - Combine multiple LUTs (8-color + 6-color + 4-color + BW) to expand color gamut
+- 📦 **Stacking Information Preservation** - Merged LUTs now preserve original stacking data from calibration prints
+- 🔄 **NPZ Format** - Merged LUTs saved as `.npz` files containing both colors and stacking arrays
+- 🎯 **Intelligent Reconstruction** - Automatic stacking reconstruction for all LUT types (BW/4-color/6-color/8-color)
+- 🖼️ **Color Replacement Support** - Merged LUTs fully compatible with color replacement feature
+- 📤 **Upload Support** - All file upload components now accept both `.npy` and `.npz` formats
+
+### Technical Improvements
+
+- ✅ **Multi-Object 3MF Export** - Merged LUTs now correctly export separate objects for each material
+- 🔍 **Format Auto-Detection** - System automatically detects and loads `.npy` or `.npz` format
+- 🏷️ **Visual Indicators** - Merged LUTs display `[Merged]` tag in dropdown for easy identification
+
+---
+
 ## What's New in v1.5.4 🚀
 
 ### Vector Mode Improvements
