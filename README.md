@@ -410,13 +410,13 @@ This launches the web interface with all three modules in tabs.
 4. Upload your photo
 5. Click the four corner blocks in order (colors vary by mode):
 
-| Mode | Corner 1 (TL) | Corner 2 (TR) | Corner 3 (BR) | Corner 4 (BL) |
-|------|---------------|---------------|---------------|---------------|
-| 4-Color RYBW | ⬜ White | 🟥 Red | 🟦 Blue | 🟨 Yellow |
-| 4-Color CMYW | ⬜ White | 🔵 Cyan | 🟣 Magenta | 🟨 Yellow |
-| 6-Color | ⬜ White | 🔵 Cyan | 🟣 Magenta | 🟨 Yellow |
-| 8-Color | ⬜ White | 🟡 Yellow | ⬛ Black | 🟨 Cyan |
-| BW | ⬜ White | ⬛ Black | ⬛ Black | ⬛ Black |
+| Mode | ⬜ White Top-Left | Top-Right | Bottom-Right | Bottom-Left |
+|------|------------------|-----------|--------------|-------------|
+| 4-Color RYBW | ⬜ White | Red | Blue | Yellow |
+| 4-Color CMYW | ⬜ White | Cyan | Magenta | Yellow |
+| 6-Color | ⬜ White | Cyan | Magenta | Yellow |
+| 8-Color | ⬜ White | Yellow | Black | Cyan |
+| BW | ⬜ White | Black | Black | Black |
 
 6. Adjust correction sliders if needed (white balance OFF by default, vignette, distortion)
 7. Click **Extract** 
